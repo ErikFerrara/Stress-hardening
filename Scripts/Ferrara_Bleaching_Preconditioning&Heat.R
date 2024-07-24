@@ -1,4 +1,19 @@
 
+
+# --------------------------- Ferrara et al. 2024 - R script N. 2 --------------------------- #
+#                                                                                             #
+#                                                                                             #
+#  Effect of preconditioning treatments on tissue color at time points                        #
+#  "Post-preconditioning" and "Post-heat"                                                     #
+#                                                                                             #
+#  In this script we calculate the effect of preconditioning on baseline physiology           #
+#  and the increase in thermal tolerance after the heat assay                                 #
+#                                                                                             #
+#  The effects are calculated on tissue color metrics only                                    #
+#                                                                                             #
+#-------------------------------------------------------------------------------------------- #
+
+
 # Libraries ----
 
 library(here)
@@ -26,10 +41,11 @@ library(lmtest)
 # Load the data of coral tissue color, used as proxy for bleaching. This df contain the tissue color values from the "post-preconditioning",
 # "post-heat", "day-15", and "day-30" time points. However, Only DATA ANALYSIS OF "POST-PRECONDITIONING" AND "POST-HEAT" is shown here.
 
+Clr  <- read_csv2(here("Data", "Ferrara_tissue_color_master_df.csv"))
 
 # To perform the tissue color analyses, we calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
-Clr  <- read_csv(here("Data", "Ferrara_tissue_color_master_df.csv"))
-
+Clr <- Clr %>%
+  mutate(gray_sum = (255 - gray_sum))
 
 
 #  1 Effect of Prec. on baseline physiology (tissue color) ---- 
@@ -81,7 +97,11 @@ Clr_Preconditioning %>%
 # The effect of the two preconditioning treatments on coral tissue color is tested for each species separately
 # Post-Preconditioning Linear Mixed-Effects Models ----
 
-## Post-Prec - MONTIPORA DIGITATA (Mdi) ----
+
+
+
+
+## Post-Prec - MONTIPORA DIGITATA (Mdi) ----------------------------------------------------------------------
 
 #### Subset ----
 
@@ -149,7 +169,12 @@ summary(Mdi.lmer.Prec)
 report(Mdi.lmer.Prec)
 
 
-## Post-Prec - PORITES RUS (Pru) ----
+
+
+
+
+
+## Post-Prec - PORITES RUS (Pru) --------------------------------------------------------------------------------
 
 #### Subset ----
 
@@ -210,7 +235,13 @@ Pru_Prec_Clr_anova
 summary(Pru.lmer.Prec)
 report(Pru.lmer.Prec)
 
-## Post-Prec - GALAXEA FASCICULARIS (Gfa) ----
+
+
+
+
+
+
+## Post-Prec - GALAXEA FASCICULARIS (Gfa) --------------------------------------------------------------------------------
 
 #### Subset ----
 
@@ -272,7 +303,10 @@ report(Gfa.lmer.Prec)
 
 
 
-## Post-Prec - ACROPORA MURICATA (Amu) ----
+
+
+
+## Post-Prec - ACROPORA MURICATA (Amu) -----------------------------------------------------------------------------------
 
 #### Subset ----
 
@@ -341,7 +375,11 @@ report(Amu.lmer.Prec)
 
 
 
-## Post-Prec - POCILLOPORA VERRUCOSA (Pve) ----
+
+
+
+
+## Post-Prec - POCILLOPORA VERRUCOSA (Pve) ----------------------------------------------
 
 #### Subset ----
 
@@ -410,7 +448,10 @@ report(Pve.lmer.Prec)
 
 
 
-## Post-Prec - STYLOPHORA PISTILLATA (Spi) ----
+
+
+
+## Post-Prec - STYLOPHORA PISTILLATA (Spi) ----------------------------------------------------
 
 #### Subset ----
 
@@ -490,7 +531,10 @@ Spi_IMG.ems <- emmeans::emmeans(Spi_IMG.lmer4, list(pairwise ~ Prec), adjust = "
 
 
 
-#### Significance annotations position ----
+
+
+
+#### Significance annotations position ---------------------------------------------------------------------------------
 
 #To add the lmer p values the results for each model was joint in one single table and then, the position was
 #obtained from another test (e.g Kruscal-Wallis) replasing the p values with those from lmer
@@ -508,7 +552,8 @@ Amu.Clr.prec.result1 <- Amu.Clr.prec.result %>%
 Pru.Clr.prec.result1 <- Pru.Clr.prec.result %>%
   separate(contrast, sep = " - ",
            into = c("group2", "group1"))%>%
-  add_column(Species = "Porites rus")
+  add_column(Species = "Porites rus") %>% 
+  mutate(adj.p.value.signif = "ns")# the anova on the lmer model was non significant therefore we don't have to calculate the post-hoc test
 
 Mdi.Clr.prec.result1 <- Mdi.Clr.prec.result %>%
   separate(contrast, sep = " - ",
@@ -533,7 +578,7 @@ Clr.Prec_significance <- bind_rows(Spi.Clr.prec.result1, Amu.Clr.prec.result1, P
   mutate(term =NULL)
 
 #run a test to that include all species together, to obtain the coordinates where to add the annotations
-Pos.bp <- Clr_Preconditioning %>%
+Clr.Pos.bp <- Clr_Preconditioning %>%
   group_by(Species) %>%
   rstatix::wilcox_test(gray_sum ~ Prec, p.adjust.method = "BH") %>% #, ref.group = "Ambient"
   #mutate_if(is.numeric, round, 3) %>%
@@ -541,18 +586,28 @@ Pos.bp <- Clr_Preconditioning %>%
                             symbols = c("***", "**", "*", "ns"))%>%
   rstatix::add_xy_position(x = "Species", dodge = 0.8)
 
-Pos.bp <- Pos.bp %>%
+Clr.Pos.bp <- Clr.Pos.bp %>%
   mutate(p= NULL , p.adj= NULL, p.adj.signif = NULL)
 
 ### Annotations coordinates ----
 #Join the two df to get the right annotation coordinates and significance
-Prec_significance <- left_join(Pos.bp, Clr.Prec_significance, by = c("Species", "group1", "group2"))%>% mutate_if(is.numeric, round, 3)
+Prec_Clr_significance <- left_join(Clr.Pos.bp, Clr.Prec_significance, by = c("Species", "group1", "group2"))%>% mutate_if(is.numeric, round, 3)
+
+
+  
 
 
 
 
-## PLOT - Post-preconditioning ----
 
+
+
+
+## PLOT - Post-preconditioning ----------------------------------------------------------------------------------------------------------------- 
+
+# This plot shows the effect of preconditioning on baseline tissue color
+# Connecting lines and significance symbols are derived from the results of post-hoc tests performed on the mixed-effects model.
+# This plot is the one showed in Fig.2 panel C of the manuscript
  
 Clr_Preconditioning %>%
  
@@ -563,7 +618,7 @@ Clr_Preconditioning %>%
   scale_fill_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
   
   stat_pvalue_manual(
-    Prec_significance,  label = "p.adj.signif", label.size = 14, tip.length = 0.01, hide.ns = TRUE
+    Prec_Clr_significance,  label = "p.adj.signif", label.size = 14, tip.length = 0.01, hide.ns = TRUE
   ) +
   theme_classic() +
   
@@ -717,8 +772,14 @@ Heat_Clr_Wilcox_control <- Clr_heat_paired %>%
   rstatix::add_xy_position(x = "Prec_Day", dodge = 0.8)
 
 
-## PLOT - POST-HEAT paired values ----
 
+
+
+
+
+
+##                            PLOT - POST-HEAT paired values ----
+####################################################################################################################### #
 #plot showing the coral response to heat (post-heat) in comparison to the paired values at the "post-preconditioning" time point
 
 #### Plot - Paired "Heat" ----
@@ -827,10 +888,20 @@ ggsave(here ("Plot", "Clr_post-heat_paired-control.png"), dpi = 400, units = "cm
 
 
 
-## THERMAL TOLERANCE CHANGES (Linear Mixed-Effects Models) ----
+
+
+
+
+##                          THERMAL TOLERANCE CHANGES (Linear Mixed-Effects Models) ----
+################################################################################################################## #
+
 
 # The effect of preconditioning was evaluated comparing the paired delta difference 
 # (Post-heat minus Post-preconditioning) of each preconditioning regime, separately for each species
+
+
+
+
 
 ## Heat - MONTIPORA DIGITATA (Mdi) ----
 
@@ -1186,7 +1257,7 @@ report(Pve.Clr.Heat.lmer)
 
 
 
-## Heat - sTYLOPHORA PISTILLATA (Spi) ----
+## Heat - STYLOPHORA PISTILLATA (Spi) ----
 
 #### Subset ----
 

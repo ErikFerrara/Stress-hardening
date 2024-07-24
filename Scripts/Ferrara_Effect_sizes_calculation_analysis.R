@@ -52,7 +52,7 @@ H_rcv_mean <-H_rcv %>%
   )%>%
   ungroup()
 
-# 1.1 Effect of preconditioning on coral physiology -------------------------------------------------------------------------------------------
+# 1.1 Effect of PRECONDITIONING on coral physiology -------------------------------------------------------------------------------------------
 
 ## Photosynthetic efficiency (PAM) ----
  
@@ -116,7 +116,6 @@ groups<- list(
 Load.Prec_Pam <- 
   Prec.effect.H_rcv_mean%>%
   filter(Day==0)%>%
-  group_by(Species)%>%
   load( Day_Trtm_Prec, YII_mean, 
         idx= groups,
         colour = Prec)
@@ -149,7 +148,7 @@ write_excel_csv(Prec_PAM_eff_g, here("Output","Statistics/Prec_PAM_eff_g.csv"))
 
 
 
-# 1.2 Effect of preconditioning on coral physiology -------------------------------------------------------------------------------------------
+# 1.2 Effect of PRECONDITIONING on coral physiology -------------------------------------------------------------------------------------------
 
 ## Tissue color (Clr) ----
 
@@ -249,69 +248,68 @@ write_excel_csv(Prec_Clr_eff_g, here("Output","Statistics/Prec_Clr_eff_g.csv"))
 
 
 
-# 2.1 Effect on thermal tolerance -------------------------------------------------------------------------------------------
+# 2.1 Effect of HEAT on thermal tolerance -------------------------------------------------------------------------------------------
 
 ## Photosynthetic efficiency (PAM) ----
 
 ## Grouping ----
 Heat.effect.H_rcv_mean<- H_rcv_mean%>%
   
-  filter( Trtm == "Heat")%>%
-  
   # to avoid the presence of ties, a small positive values is added to each measurement
-  mutate(YII_mean = pmax(YII_mean + rnorm(length(YII_mean), mean = 0, sd = 1e-6), 0))%>% 
+  mutate(YII_mean = as.numeric(YII_mean+ round(runif(length(YII_mean), 0.00001, 0.00003),7)))%>% 
   
   mutate(t= NULL, Date= NULL, Time= NULL, Survived_day=NULL, Status=NULL)%>%
   
   # to ran the analysis with the dabestR package is necessary to create a new variable to group samples (the function doesn't have a grouping option)
   mutate(Day_Trtm_Prec = 
            case_when(
-             (Species_ID == "Amu" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Amu_AT_C", # H and C at the end of the ID indicate the "post-preconditioning" (C) and "Post-heat" (H) time points 
-             (Species_ID == "Amu" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Amu_ST_C",
-             (Species_ID == "Amu" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Amu_VT_C",
-             (Species_ID == "Amu" & Day == "1" & Trtm == "Heat" & Prec == "Ambient")~ "Amu_AT_H",
-             (Species_ID == "Amu" & Day == "1" & Trtm == "Heat" & Prec == "ST")~ "Amu_ST_H",
-             (Species_ID == "Amu" & Day == "1" & Trtm == "Heat" & Prec == "VT")~ "Amu_VT_H",
+             (Species_ID == "Amu" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Amu_AT_C", # H and C at the end of the ID indicate the "post-preconditioning" (C) and "Post-heat" (H) time points 
+             (Species_ID == "Amu" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Amu_ST_C",
+             (Species_ID == "Amu" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Amu_VT_C",
+             (Species_ID == "Amu" & Day == "1" & Treatment == "Heat" & Prec == "Ambient")~ "Amu_AT_H",
+             (Species_ID == "Amu" & Day == "1" & Treatment == "Heat" & Prec == "ST")~ "Amu_ST_H",
+             (Species_ID == "Amu" & Day == "1" & Treatment == "Heat" & Prec == "VT")~ "Amu_VT_H",
              
          
-             (Species_ID == "Gfa" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Gfa_AT_C",
-             (Species_ID == "Gfa" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Gfa_ST_C",
-             (Species_ID == "Gfa" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Gfa_VT_C",
-             (Species_ID == "Gfa" & Day == "3" & Trtm == "Heat" & Prec == "Ambient")~ "Gfa_AT_H",
-             (Species_ID == "Gfa" & Day == "3" & Trtm == "Heat" & Prec == "ST")~ "Gfa_ST_H",
-             (Species_ID == "Gfa" & Day == "3" & Trtm == "Heat" & Prec == "VT")~ "Gfa_VT_H",
+             (Species_ID == "Gfa" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Gfa_AT_C",
+             (Species_ID == "Gfa" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Gfa_ST_C",
+             (Species_ID == "Gfa" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Gfa_VT_C",
+             (Species_ID == "Gfa" & Day == "3" & Treatment == "Heat" & Prec == "Ambient")~ "Gfa_AT_H",
+             (Species_ID == "Gfa" & Day == "3" & Treatment == "Heat" & Prec == "ST")~ "Gfa_ST_H",
+             (Species_ID == "Gfa" & Day == "3" & Treatment == "Heat" & Prec == "VT")~ "Gfa_VT_H",
              
       
-             (Species_ID == "Mdi" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Mdi_AT_C",
-             (Species_ID == "Mdi" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Mdi_ST_C",
-             (Species_ID == "Mdi" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Mdi_VT_C",
-             (Species_ID == "Mdi" & Day == "3" & Trtm == "Heat" & Prec == "Ambient")~ "Mdi_AT_H",
-             (Species_ID == "Mdi" & Day == "3" & Trtm == "Heat" & Prec == "ST")~ "Mdi_ST_H",
-             (Species_ID == "Mdi" & Day == "3" & Trtm == "Heat" & Prec == "VT")~ "Mdi_VT_H",
+             (Species_ID == "Mdi" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Mdi_AT_C",
+             (Species_ID == "Mdi" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Mdi_ST_C",
+             (Species_ID == "Mdi" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Mdi_VT_C",
+             (Species_ID == "Mdi" & Day == "3" & Treatment == "Heat" & Prec == "Ambient")~ "Mdi_AT_H",
+             (Species_ID == "Mdi" & Day == "3" & Treatment == "Heat" & Prec == "ST")~ "Mdi_ST_H",
+             (Species_ID == "Mdi" & Day == "3" & Treatment == "Heat" & Prec == "VT")~ "Mdi_VT_H",
              
     
-             (Species_ID == "Pve" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Pve_AT_C",
-             (Species_ID == "Pve" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Pve_ST_C",
-             (Species_ID == "Pve" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Pve_VT_C",
-             (Species_ID == "Pve" & Day == "1" & Trtm == "Heat" & Prec == "Ambient")~ "Pve_AT_H",
-             (Species_ID == "Pve" & Day == "1" & Trtm == "Heat" & Prec == "ST")~ "Pve_ST_H",
-             (Species_ID == "Pve" & Day == "1" & Trtm == "Heat" & Prec == "VT")~ "Pve_VT_H",
+             (Species_ID == "Pve" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Pve_AT_C",
+             (Species_ID == "Pve" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Pve_ST_C",
+             (Species_ID == "Pve" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Pve_VT_C",
+             (Species_ID == "Pve" & Day == "1" & Treatment == "Heat" & Prec == "Ambient")~ "Pve_AT_H",
+             (Species_ID == "Pve" & Day == "1" & Treatment == "Heat" & Prec == "ST")~ "Pve_ST_H",
+             (Species_ID == "Pve" & Day == "1" & Treatment == "Heat" & Prec == "VT")~ "Pve_VT_H",
              
 
-             (Species_ID == "Pru" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Pru_AT_C",
-             (Species_ID == "Pru" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Pru_ST_C",
-             (Species_ID == "Pru" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Pru_VT_C",
-             (Species_ID == "Pru" & Day == "2" & Trtm == "Heat" & Prec == "Ambient")~ "Pru_AT_H",
-             (Species_ID == "Pru" & Day == "2" & Trtm == "Heat" & Prec == "ST")~ "Pru_ST_H",
-             (Species_ID == "Pru" & Day == "2" & Trtm == "Heat" & Prec == "VT")~ "Pru_VT_H",
+             (Species_ID == "Pru" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Pru_AT_C",
+             (Species_ID == "Pru" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Pru_ST_C",
+             (Species_ID == "Pru" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Pru_VT_C",
+             (Species_ID == "Pru" & Day == "2" & Treatment == "Heat" & Prec == "Ambient")~ "Pru_AT_H",
+             (Species_ID == "Pru" & Day == "2" & Treatment == "Heat" & Prec == "ST")~ "Pru_ST_H",
+             (Species_ID == "Pru" & Day == "2" & Treatment == "Heat" & Prec == "VT")~ "Pru_VT_H",
              
 
-             (Species_ID == "Spi" & Day == "0" & Trtm == "Heat" & Prec == "Ambient")~ "Spi_AT_C",
-             (Species_ID == "Spi" & Day == "0" & Trtm == "Heat" & Prec == "ST")~ "Spi_ST_C",
-             (Species_ID == "Spi" & Day == "0" & Trtm == "Heat" & Prec == "VT")~ "Spi_VT_C",
-             (Species_ID == "Spi" & Day == "1" & Trtm == "Heat" & Prec == "Ambient")~ "Spi_AT_H",
-             (Species_ID == "Spi" & Day == "1" & Trtm == "Heat" & Prec == "ST")~ "Spi_ST_H",
-             (Species_ID == "Spi" & Day == "1" & Trtm == "Heat" & Prec == "VT")~ "Spi_VT_H"))
+             (Species_ID == "Spi" & Day == "0" & Treatment == "Heat" & Prec == "Ambient")~ "Spi_AT_C",
+             (Species_ID == "Spi" & Day == "0" & Treatment == "Heat" & Prec == "ST")~ "Spi_ST_C",
+             (Species_ID == "Spi" & Day == "0" & Treatment == "Heat" & Prec == "VT")~ "Spi_VT_C",
+             (Species_ID == "Spi" & Day == "1" & Treatment == "Heat" & Prec == "Ambient")~ "Spi_AT_H",
+             (Species_ID == "Spi" & Day == "1" & Treatment == "Heat" & Prec == "ST")~ "Spi_ST_H",
+             (Species_ID == "Spi" & Day == "1" & Treatment == "Heat" & Prec == "VT")~ "Spi_VT_H"))
+
 
 
 
@@ -383,7 +381,7 @@ write_excel_csv(Heat_Pam_eff_g, here("Output","Statistics/Heat_Pam_eff_g.csv"))
 
 
 
-# 2.2 Effect on thermal tolerance -------------------------------------------------------------------------------------------
+# 2.2 Effect  of HEAT on  thermal tolerance -------------------------------------------------------------------------------------------
 
 ## Tissue color (Clr) ----
 

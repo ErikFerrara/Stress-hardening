@@ -1,4 +1,18 @@
 
+
+# --------------------------- Ferrara et al. 2024 - R script N. 1 --------------------------- #
+#                                                                                             #
+#                                                                                             #
+#  Effect of preconditioning treatments on photosynthetic efficiency at time points           #
+#  "Post-preconditioning" and "Post-heat"                                                     #
+#                                                                                             #
+#  In this script we calculate the effect of preconditioning on baseline physiology           #
+#  and the increase in thermal tolerance after the heat assay                                 #
+#                                                                                             #
+#  The effects are calculated on photosynthetic efficiency metrics only                       #
+#                                                                                             #
+#-------------------------------------------------------------------------------------------- #
+
 # Libraries ----
 
 
@@ -27,9 +41,14 @@ library(lmtest)
 # At each time point, each fragment effective quantum yield was measured in three different spots to obtained a comprehensive overview 
 # of coral fragments health status. Before any analysis, the mean of these three measurements was calculated. 
 
+
 H_rcv <- read_csv(here("Data", "Ferrara_PAM_master_df.csv"))
 
-#  1 Effect of Prec. on baseline physiology ---- 
+
+
+#                            1 Effect of Prec. on baseline physiology -----
+############################################################################################################# #
+
 
 #In this first chapter, the effect of thermal preconditioning regimes on coral baseline effective quantum yield
 #is tested using LMER models for each species separately. 
@@ -45,7 +64,7 @@ PAM_Preconditioning <- H_rcv %>%
   mutate(across(c(Species_ID, Prec, Treatment, Tank_n, Colony, Day, Frg_n, Region, Treatment), as.factor),
          across(c(YII, F, Fm), as.numeric))%>%
   
-  dplyr::filter(Day == 0, Meas_type == "Light")%>%
+  dplyr::filter(Day == 0)%>%
   
   mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Porites rus", "Acropora muricata", "Montipora digitata", 
                                                "Pocillopora verrucosa", "Stylophora pistillata"
@@ -84,17 +103,25 @@ PAM_Preconditioning %>%
 
 
 
+
+
+
+
+
+#                          Post-Preconditioning Linear Mixed-Effects Models ----
+################################################################################################################### #
 # The effect of the two preconditioning treatments is tested for each species separately
-# Post-Preconditioning Linear Mixed-Effects Models ----
 
-## Post-Prec - MONTIPORA DIGITATA (Mdi) ----
 
+
+## Post-Prec - MONTIPORA DIGITATA (Mdi) ----------------------------------
 #### Subset ----
 
 
 Mdi.PAM_Preconditioning <-
   PAM_Preconditioning %>%
   dplyr::filter(Species_ID == "Mdi")
+
 
 
 #### Models ----
@@ -132,7 +159,9 @@ Mdi_Prec_PAM_anova
 write.table(Mdi_Prec_PAM_anova, sep = ";", "Statistics/Mdi_Prec_PAM_anova.csv")
 
 
-#### Post-hoc analysis ----
+
+#### Post-hoc analysis ---------
+
 Mdi.prec.result <- tidy(glht(Mdi.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>%  add_significance("adj.p.value")
 Mdi.prec.result
 
@@ -144,13 +173,22 @@ report(Mdi.lmer.Prec)
 
 
 
-## Post-Prec - PORITES RUS (Pru) ----
+
+
+
+
+
+
+
+
+## Post-Prec - PORITES RUS (Pru) -------------------------------------------------------------
 #### Subset ----
 
 
 Pru.PAM_Preconditioning <-
   PAM_Preconditioning %>%
   dplyr::filter(Species_ID == "Pru")
+
 
 
 ### Transformation ----
@@ -165,6 +203,7 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(YII_norm_bcx = value)
 
 Pru.PAM_Preconditioning <- bind_cols(Pru.PAM_Preconditioning, norm_dat)
+
 
 
 #### Models ----
@@ -199,7 +238,10 @@ Pru_Prec_PAM_anova
 # write.table(Pru_Prec_PAM_anova, sep = ";", "Statistics/Pru_Prec_PAM_anova.csv")
 
 
-#### Post-hoc analysis ----
+
+
+#### Post-hoc analysis -------
+
 Pru.prec.result <- tidy(glht(Pru.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>%  add_significance("adj.p.value")
 Pru.prec.result
 
@@ -213,7 +255,9 @@ report(Pru.lmer.Prec)
 
 
 
-## Post-Prec - GALAXEA FASCICULARIS (Gfa) ----
+
+
+## Post-Prec - GALAXEA FASCICULARIS (Gfa) ------------------------------------------------------------------------
 
 
 #### Subset ----
@@ -222,6 +266,8 @@ report(Pru.lmer.Prec)
 Gfa.PAM_Preconditioning <-
   PAM_Preconditioning %>%
   dplyr::filter(Species_ID == "Gfa")
+
+
 
 
 #### Models ----
@@ -255,7 +301,9 @@ Gfa_Prec_PAM_anova
 # write.table(Gfa_Prec_PAM_anova, sep = ";", "Statistics/Gfa_Prec_PAM_anova.csv")
 
 
-#### Post-hoc analysis ----
+
+#### Post-hoc analysis -------------
+
 Gfa.prec.result <- tidy(glht(Gfa.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>%  add_significance("adj.p.value")
 Gfa.prec.result
 
@@ -266,7 +314,15 @@ summary(Gfa.lmer.Prec)
 report(Gfa.lmer.Prec)
 
 
-## Post-Prec - ACROPORA MURICATA (Amu) ----
+
+
+
+
+
+
+
+
+## Post-Prec - ACROPORA MURICATA (Amu) ------------------------------------------------------------------
 
 #### Subset ----
 
@@ -290,6 +346,7 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(YII_norm = value)
 
 Amu.PAM_Preconditioning <- bind_cols(Amu.PAM_Preconditioning, norm_dat)
+
 
 
 #### Models ----
@@ -330,7 +387,10 @@ Amu_Prec_PAM_anova
 # write.table(Amu_Prec_PAM_anova, sep = ";", "Statistics/Amu_Prec_PAM_anova.csv")
 
 
-#### Post-hoc analysis ----
+
+
+#### Post-hoc analysis --------
+
 Amu.prec.result <- tidy(glht(Amu.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>%
   add_significance("adj.p.value", cutpoints = c(0, 0.001, 0.01, 0.05, 1), 
                    symbols = c("***", "**", "*", "ns"))
@@ -344,7 +404,15 @@ report(Amu.lmer.Prec)
 
 
 
-## Post-Prec - POCILLOPORA VERRUCOSA (Pve) ----
+
+
+
+
+
+
+
+
+## Post-Prec - POCILLOPORA VERRUCOSA (Pve) --------------------------------------------------------
 
 #### Subset ----
 
@@ -353,6 +421,7 @@ report(Amu.lmer.Prec)
 Pve.PAM_Preconditioning <-
   PAM_Preconditioning %>%
   dplyr::filter(Species_ID == "Pve")
+
 
 
 ### Transformation ----
@@ -367,6 +436,8 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(YII_norm = value)
 
 Pve.PAM_Preconditioning <- bind_cols(Pve.PAM_Preconditioning, norm_dat)
+
+
 
 
 #### Models ----
@@ -407,7 +478,11 @@ Pve_Prec_PAM_anova
 #write.table(Pve_Prec_PAM_anova, sep = ";", "Statistics/Pve_Prec_PAM_anova.csv")
 
 
+
+
+
 #### Post-hoc analysis ----
+
 Pve.prec.result <- tidy(glht(Pve.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>% 
   add_significance("adj.p.value", cutpoints = c(0, 0.001, 0.01, 0.05, 1), 
                    symbols = c("***", "**", "*", "ns"))%>% tibble()
@@ -420,7 +495,12 @@ summary(Pve.lmer.Prec)
 report(Pve.lmer.Prec)
 
 
-## Post-Prec - STYLOPHORA PISTILLATA (Spi) ----
+
+
+
+
+
+## Post-Prec - STYLOPHORA PISTILLATA (Spi) --------------------------------------------------------
 
 
 #### Subset ----
@@ -444,7 +524,10 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
 Spi.PAM_Preconditioning <- bind_cols(Spi.PAM_Preconditioning, norm_dat)
 
 
-#### Models ----
+
+
+#### Models ------------
+
 
 # Data are transformed using the box-cox Transformation
 Spi.lmer.Prec <- lmerTest::lmer(YII_norm ~ Prec + (1|Colony) , data= Spi.PAM_Preconditioning, REML = T)
@@ -482,7 +565,10 @@ Spi_Prec_PAM_anova
 #write.table(Spi_Prec_PAM_anova, sep = ";", "Statistics/Spi_Prec_PAM_anova.csv")
 
 
-#### Post-hoc analysis ----
+
+
+#### Post-hoc analysis --------------
+
 Spi.prec.result <- tidy(glht(Spi.lmer.Prec, linfct = mcp(Prec = "Tukey"), test = adjusted("holm"))) %>% 
   add_significance("adj.p.value", cutpoints = c(0, 0.001, 0.01, 0.05, 1), 
                    symbols = c("***", "**", "*", "ns"))
@@ -497,7 +583,7 @@ report(Spi.lmer.Prec)
 
 
 
-## Significance plot position  ----
+## Significance plot position  ----------------------------
 
 #To add the lmer p values the results for each model was joint in one single table and then, the position was
 #obtained from another test (e.g Kruscal-Wallis) replasing the p values with those from lmer
@@ -565,10 +651,19 @@ Prec_significance <- left_join(Pwc1, Prec_significance, by = c("Species", "group
 
 
 
-## PLOT - PAM Post-preconditioning ----
+
+
+
+
+
+
+
+
+## PLOT - PAM Post-preconditioning -----------------------------------------------------------------------------
 
 # This plot shows the effect of preconditioning on baseline effective quantum yield
 # Connecting lines and significance symbols are derived from the results of post-hoc tests performed on the mixed-effects model.
+# This plot is the one showed in Fig.2 panel A of the manuscript
 
   PAM_Preconditioning %>%
     mutate (Species =  factor(Species, level = c("Galaxea fascicularis",  "Porites rus", "Acropora muricata",
@@ -631,16 +726,26 @@ ggsave(here ("output", "PAM_post-preconditioning.png"), dpi = 400, units = "cm",
 
 
 
-# 2 Effect of prec. on THERMAL TOLERANCE ----
 
+
+
+
+
+
+
+
+
+
+
+#                               2 Effect of prec. on THERMAL TOLERANCE ----
+################################################################################################################################### #
 #in the second chapter, we analyzed the effect of precondition on coral thermal tolerance.
 # First, we tested the effect of heat exposure on corals and then we calculated the delta between
 # post-heat and post-preconditioning effective quantum yield within each preconditioning regime and
 # across species to estimate the change in thermal tolerance
 
 
-
-## DF subset (Paired data) ----
+## DF subset (Paired data) ------------------
 
 # subset the master df to include only the "post-heat" and "post-preconditioning" values to calculated the paired difference (delta).
 # As before, the mean values of effective quantum yield is calculated (each fragment was measured in three different points)
@@ -695,10 +800,27 @@ Pam_heat_paired  <- H_rcv %>%
 
   ungroup() 
 
-## Statistical test - effect of heat exposure ----
 
-###  Kruskal-Wallis test ----
+
+
+
+
+
+
+## Statistical test - effect of heat exposure ------------------
+
+
+
+
+
+###  Kruskal-Wallis test ----------------------
+
+
+
 # Kruskal-Wallis test was used to test whether the heat had an effect on the effective quantum yield within each species
+
+
+
 # "Heat" treatment
 Heat_PAM_kruskal <- Pam_heat_paired %>%
   filter(Treatment=="Heat")%>%
@@ -708,6 +830,8 @@ Heat_PAM_kruskal <- Pam_heat_paired %>%
   mutate_if(is.numeric, round, 3) %>%
   rstatix::add_significance(cutpoints = c(0, 0.001, 0.01, 0.05, 1), 
                             symbols = c("***", "**", "*", "ns"))
+
+
 
 # "Control" treatment
 Heat_PAM_kruskal_control <- Pam_heat_paired %>%
@@ -720,9 +844,11 @@ Heat_PAM_kruskal_control <- Pam_heat_paired %>%
                             symbols = c("***", "**", "*", "ns"))
 
 
-### Wilcox test ----
+### Wilcox test -----------------------------------
 
-# post-hoc test 
+# post-hoc test - Heat 
+
+
 Heat_PAM_Wilcox <- Pam_heat_paired %>%
   mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
                                                "P. verrucosa", "S. pistillata"
@@ -742,7 +868,11 @@ Heat_PAM_Wilcox <- Pam_heat_paired %>%
 write_csv2(Heat_PAM_Wilcox,here("Statistics","Wilcox_Heat_PAM.result.csv"))
 
 
-# post-hoc test 
+
+
+# post-hoc test - Control 
+
+
 Heat_PAM_Wilcox_control <- Pam_heat_paired %>%
   mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
                                                "P. verrucosa", "S. pistillata"
@@ -759,11 +889,19 @@ Heat_PAM_Wilcox_control <- Pam_heat_paired %>%
   rstatix::add_xy_position(x = "Prec_Day", dodge = 0.8)
 
 
-## PLOT - POST-HEAT paired values ----
 
+
+
+
+##                            PLOT - POST-HEAT paired values ----
+####################################################################################################################### #
 #plot showing the coral response to heat (post-heat) in comparison to the paired values at the "post-preconditioning" time point
 
-#### Plot - Paired "Heat" ----
+
+
+
+
+#### Plot - Paired "Heat" --------------------
 
 #paired data of the "Heat" treatment
 
@@ -819,7 +957,13 @@ ggsave(here ("Plot", "PAM_post-heat_paired-heat.png"), dpi = 400, units = "cm", 
 
 
 
-#### Plot - Paired "Control" ----
+
+
+
+
+#### Plot - Paired "Control" ------------------------------------------
+
+
 #paired data of the "Control" treatment
 
 
@@ -881,7 +1025,7 @@ ggsave(here ("Plot", "PAM_post-heat_paired-control.png"), dpi = 400, units = "cm
 
 
 
-## PAIRED DELTA calculation ----
+## PAIRED DELTA calculation -----------------------------------------------------------------
 
 #Delta values are calculated as Post-heat minus Post-preconditioning paired ΔF/Fm' values
 PAM_heat_delta <- Pam_heat_paired %>%
@@ -890,12 +1034,18 @@ PAM_heat_delta <- Pam_heat_paired %>%
   mutate(Delta_pair = lead(YII_mean) - YII_mean )
 
 
-## THERMAL TOLERANCE CHANGES (Linear Mixed-Effects Models) ----
+##                          THERMAL TOLERANCE CHANGES (Linear Mixed-Effects Models) ----
+################################################################################################################## #
+
 
 # The effect of preconditioning was evaluated comparing the paired delta difference 
 # (Post-heat minus Post-preconditioning) of each preconditioning regime, separately for each species
 
-## Heat - MONTIPORA DIGITATA (Mdi) ----
+
+
+
+
+## Heat - MONTIPORA DIGITATA (Mdi) -----------------------
 
 #### Subset ----
 
@@ -915,6 +1065,8 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(Delta_pair_norm = value)
 
 Mdi.PAM_heat_delta <- bind_cols(Mdi.PAM_heat_delta, norm_dat)
+
+
 
 #### Models ----
 
@@ -946,19 +1098,26 @@ fitted_lmer <- fitted(Mdi.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
 #### F statistic (ANOVA)----
 Mdi.lmer.heat_anova<-as_tibble(anova(Mdi.lmer.heat))
 Mdi.lmer.heat_anova # ANOVA test is not significant
 
 #write.table(Mdi.lmer.heat_anova, sep = ";", "Statistics/Mdi_Prec_PAM_anova.csv")
 
-
 # summary and report for better interpretation
 summary(Mdi.lmer.heat)
 report(Mdi.lmer.heat)
 
 
-## Heat - GALAXEA FASCICULARIS (Gfa) ----
+
+
+
+
+
+
+## Heat - GALAXEA FASCICULARIS (Gfa) ----------------------------------------
 
 #### Subset ----
 
@@ -966,6 +1125,7 @@ Gfa.PAM_heat_delta <- PAM_heat_delta %>%
   dplyr::filter(Species_ID == "Gfa")%>%
   mutate(Delta_pair_1 = (Delta_pair+1))%>%
   drop_na(Delta_pair_1)# add 1 to make all values positive
+
 
 ### Transformation ----
 
@@ -979,6 +1139,8 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(Delta_pair_norm = value)
 
 Gfa.PAM_heat_delta <- bind_cols(Gfa.PAM_heat_delta, norm_dat)
+
+
 
 #### Models ----
 
@@ -1011,11 +1173,15 @@ fitted_lmer <- fitted(Gfa.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
 #### F statistic (ANOVA)----
 Gfa.lmer.heat_anova<-as_tibble(anova(Gfa.lmer.heat))
 Gfa.lmer.heat_anova
 
 #write.table(Gfa.lmer.heat_anova, sep = ";", "Statistics/Gfa_Prec_PAM_anova.csv")
+
+
 
 
 #### Post-hoc analysis ----
@@ -1029,13 +1195,17 @@ Gfa.lmer.heat.ems <- emmeans::emmeans(Gfa.lmer.heat, list(pairwise ~ Prec), adju
 
 #write.table(Gfa.lmer.heat.result, sep = ";", "Statistics/Gfa_Result_Prec_Pam.csv")
 
+
 # summary and report for better interpretation
 summary(Gfa.lmer.heat)
 report(Gfa.lmer.heat)
 
 
 
-## Heat - ACROPORA MURICATA (Amu) ----
+
+
+
+## Heat - ACROPORA MURICATA (Amu) ----------------------------------------------
 
 #### Subset ----
 
@@ -1043,6 +1213,7 @@ Amu.PAM_heat_delta <- PAM_heat_delta %>%
   dplyr::filter(Species_ID == "Amu")%>%
   mutate(Delta_pair_1 = (Delta_pair+1))%>%
   drop_na(Delta_pair_1)# add 1 to make all values positive
+
 
 ### Transformation ----
 
@@ -1096,9 +1267,14 @@ fitted_lmer <- fitted(Amu.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
+
 #### F statistic (ANOVA)----
 Amu.lmer.heat_anova<-as_tibble(anova(Amu.lmer.heat))
 Amu.lmer.heat_anova
+
+
 
 
 
@@ -1116,7 +1292,13 @@ Amu.lmer.heat.ems <- emmeans::emmeans(Amu.lmer.heat, list(pairwise ~ Prec), adju
 summary(Amu.lmer.heat)
 report(Amu.lmer.heat)
 
-##Heat -PORITES RUS (Pru) ----
+
+
+
+
+
+
+##Heat -PORITES RUS (Pru) -----------------------------------------------------------
 
 #### Subset ----
 
@@ -1138,6 +1320,9 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(Delta_pair_norm = value)
 
 Pru.PAM_heat_delta <- bind_cols(Pru.PAM_heat_delta, norm_dat)
+
+
+
 
 #### Models ----
 
@@ -1169,11 +1354,17 @@ fitted_lmer <- fitted(Pru.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
+
 #### F statistic (ANOVA)----
 Pru.lmer.heat_anova<-as_tibble(anova(Pru.lmer.heat))
 Pru.lmer.heat_anova
 
 #write.table(Pru.lmer.heat_anova, sep = ";", "Statistics/Pru_Prec_PAM_anova.csv")
+
+
+
 
 
 #### Post-hoc analysis ----
@@ -1193,7 +1384,12 @@ report(Pru.lmer.heat)
 
 
 
-## Heat - POCILLOPORA VERRUCOSA (Pve) ----
+
+
+
+
+
+## Heat - POCILLOPORA VERRUCOSA (Pve) ---------------------------------------------------------
 
 #### Subset ----
 
@@ -1215,6 +1411,10 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(Delta_pair_norm = value)
 
 Pve.PAM_heat_delta <- bind_cols(Pve.PAM_heat_delta, norm_dat)
+
+
+
+
 
 #### Models ----
 
@@ -1246,11 +1446,18 @@ fitted_lmer <- fitted(Pve.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
+
+
 #### F statistic (ANOVA)----
 Pve.lmer.heat_anova<-as_tibble(anova(Pve.lmer.heat))
 Pve.lmer.heat_anova
 
 #write.table(Pve.lmer.heat_anova, sep = ";", "Statistics/Pve_Prec_PAM_anova.csv")
+
+
+
 
 
 #### Post-hoc analysis ----
@@ -1268,7 +1475,13 @@ Pve.lmer.heat.ems <- emmeans::emmeans(Pve.lmer.heat, list(pairwise ~ Prec), adju
 summary(Pve.lmer.heat)
 report(Pve.lmer.heat)
 
-## Heat - STYLOPHORA PISTILLATA (Spi) ----
+
+
+
+
+
+
+## Heat - STYLOPHORA PISTILLATA (Spi) ---------------------------
 
 #### Subset ----
 
@@ -1290,6 +1503,9 @@ norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(Delta_pair_norm = value)
 
 Spi.PAM_heat_delta <- bind_cols(Spi.PAM_heat_delta, norm_dat)
+
+
+
 
 #### Models ----
 
@@ -1321,11 +1537,18 @@ fitted_lmer <- fitted(Spi.lmer.heat)
 lm_test <- lm(residuals_lmer ~ fitted_lmer)
 bptest(lm_test) # the significant p value is due to the two dead corals
 
+
+
+
+
 #### F statistic (ANOVA)----
 Spi.lmer.heat_anova<-as_tibble(anova(Spi.lmer.heat))
 Spi.lmer.heat_anova
 
 #write.table(Spi.lmer.heat_anova, sep = ";", "Statistics/Spi_Prec_PAM_anova.csv")
+
+
+
 
 
 #### Post-hoc analysis ----

@@ -1,3 +1,20 @@
+
+
+
+# --------------------------- Ferrara et al. 2024 - R script N. 3 --------------------------- #
+#                                                                                             #
+#                                                                                             #
+#  Effect of preconditioning treatments on photosynthetic efficiency and                      #
+#  tissue color at time points "day-30"                                                       #
+#                                                                                             #
+#  In this script we calculate the effect of preconditioning on recovery and survival rate    #
+#  to estimate the increase in long term resilience after the heat assay                      #
+#                                                                                             #
+#  The effects are calculated on both metrics (photosynthetic efficiency and tissue color)    #
+#  and on survival score                                                                      #
+#-------------------------------------------------------------------------------------------- #
+
+
 # Libraries ----
 
 
@@ -41,7 +58,12 @@ H_rcv <- read_csv(here("Data", "Ferrara_PAM_master_df.csv"))
 Clr  <- read_csv(here("Data", "Ferrara_tissue_color_master_df.csv"))
 
 
-# RECOVERY----
+
+
+
+
+
+# RECOVERY------------------------------------------------------------------------------------------
 
 ## PAM Data subest ----
 Recovery_data <- H_rcv %>%
@@ -148,7 +170,7 @@ theme_recovery_surv <- theme_classic()+
 
 
 
-##  PLOTS - Effective quantum yield (PAM) ----
+##  PLOTS - Effective quantum yield (PAM) -------------------------------------------
 ### PAM - Porites ----
 
 (Pru_PAM_recovery <- 
@@ -449,7 +471,10 @@ theme_recovery_surv <- theme_classic()+
 
    
 
-## PLOTS - Tissue color (Clr) ----
+## PLOTS - Tissue color (Clr) -----------------------------------------------------------------------
+
+
+
 
 
 ### Clr - Galaxea ----
@@ -505,6 +530,10 @@ theme_recovery_surv <- theme_classic()+
 
 
 
+
+
+
+
 ### Clr - Montipora ----
 (Mdi_Clr_recovery <- 
    Clr %>%
@@ -550,6 +579,10 @@ theme_recovery_surv <- theme_classic()+
  
    )+
    facet_wrap(Species_short ~., strip.position ="bottom"))
+
+
+
+
 
 
 
@@ -610,6 +643,9 @@ theme_recovery_surv <- theme_classic()+
 
 
 
+
+
+
 ### Clr - Stylopora ----
 (Spi_Clr_recovery <- 
    Clr %>%
@@ -653,6 +689,10 @@ theme_recovery_surv <- theme_classic()+
    
    labs(x = "", y = "")+
    facet_wrap(Species_short ~., strip.position ="bottom"))
+
+
+
+
 
 
 ### Clr - Porites ----
@@ -701,6 +741,7 @@ theme_recovery_surv <- theme_classic()+
    # labs(x = "Days after heat stress", y = "Tissue color intensity")+
    labs(x = "", y = "")+
    facet_wrap(Species_short ~., strip.position ="bottom"))
+
 
 
 
@@ -756,7 +797,9 @@ theme_recovery_surv <- theme_classic()+
 
 
 
-# SURVIVAL RATE ----
+
+
+# SURVIVAL RATE ----------------------------------------------------------
 
 # Cleaning and table preparation. Fragments 3 and 4 at "day-30 time point are selected together with the survival information
 
@@ -1348,7 +1391,11 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   
   
   
-# Plot Assembly  ----
+  
+  
+  
+  
+# Plot Assembly  --------------------------------------------
   
   # In this section all recovery plots (Survival, Photosynthetic efficiency, and tissue color) are combined first by species and then all together
 
