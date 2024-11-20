@@ -15,45 +15,10 @@
 # Libraries ----
 
 library(here)
-library(ggpubr)
-library(gridExtra)
-library(ggtext)
 library(dplyr)   
 library(tidyverse)
 library(ggnewscale)
 library(RColorBrewer)
-
-
-
-
-library(here)
-library(lubridate)
-library(scales)
-library(ggpubr)
-
-library(rstatix)
-library(patchwork)
-library(multcomp)
-
-library(easystats)
-library(gridExtra)
-library(lme4)
-#install.packages("ggbeeswarm")
-library(ggbeeswarm)
-#install.packages("ggtext")
-library(ggtext)
-# install.packages("devtools")
-library(dplyr)   
-library(tidyverse)
-library(emmeans)
-library(ggnewscale)
-library(survival)
-library(survminer)
-#library(elementalist)
-library(car)
-
-
-
 
 
 # 1 (PAM) Post-heat Photosynthetic efficiency effect sizes -----------------------------------------------------------------------------------------------
