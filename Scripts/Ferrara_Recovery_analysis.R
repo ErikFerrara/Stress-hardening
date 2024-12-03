@@ -51,11 +51,11 @@ library(patchwork)
 
 
 #Load the efficiency data (effective quantum yield and surival data)
-H_rcv <- read_csv(here("Data", "Ferrara_PAM_master_df.csv"))
+H_rcv <- read_csv2(here("Data", "Ferrara_PAM_master_df.csv"))
 
 
 # To perform the tissue color analyses, we calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
-Clr  <- read_csv(here("Data", "Ferrara_tissue_color_master_df.csv"))
+Clr  <- read_csv2(here("Data", "Ferrara_tissue_color_master_df.csv"))
 
 
 
