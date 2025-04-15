@@ -50,17 +50,16 @@ library(patchwork)
 #Statistical analysis of effective quantum yield and tissue color data are performed in a separate script (Ferrara_effect_size_analysis)
 
 
-#Load the efficiency data (effective quantum yield and surival data)
-H_rcv <- read_csv2(here("Data", "Ferrara_PAM_master_df.csv"))
+#Load the photosynthetic efficiency data (effective quantum yield and surival data)
+
+H_rcv <- read_csv2(here("Data", "Ferrara_etal_PAM.csv"))
+
+#Load the tissue color data (effective quantum yield and surival data)
+
+Clr1  <- read_csv2(here("Data", "Ferrara_etal_bleaching.csv"))
 
 
-# To perform the tissue color analyses, we calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
-Clr  <- read_csv2(here("Data", "Ferrara_tissue_color_master_df.csv"))
-
-
-
-
-
+# To perform the tissue color analyses, we already calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
 
 
 # RECOVERY------------------------------------------------------------------------------------------
@@ -171,7 +170,24 @@ theme_recovery_surv <- theme_classic()+
 
 
 ##  PLOTS - Effective quantum yield (PAM) -------------------------------------------
+
 ### PAM - Porites ----
+
+Pru_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Pru"
+  )%>%
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "2") ~ "0",
+                         str_detect(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+                YII_se = sd(YII_mean) / sqrt(n()))
+
+
 
 (Pru_PAM_recovery <- 
     Recovery_data %>%
@@ -182,18 +198,27 @@ theme_recovery_surv <- theme_classic()+
                            str_detect(Day, "15") ~ "10",
                            str_starts(Day, "30") ~ "20"))%>%
     
-    group_by(Day, Prec, Treatment) %>% 
-    dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+    group_by(Day, Prec, Treatment, Days) %>% 
+    dplyr::mutate(YII_mean_all = mean(YII_mean),
+                  YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
     
     mutate (Days =  as.numeric(Days))%>%
     
     
     ggplot(mapping = aes(x = Days))+
     
-    geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-               alpha = 0.6, fill = NA, set.seed(1) ) +
-    geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), linewidth = 1) +
-    geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
+    geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Pru_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Pru_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+   
     scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
     scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
     
@@ -201,6 +226,18 @@ theme_recovery_surv <- theme_classic()+
              alpha = .1,fill = "#1AD45E")+
     annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
              alpha = .1,fill = "#F75840")+
+   
+   geom_errorbar(data = Pru_PAM_recovery_mean,
+     aes(
+       ymin = YII_mean_all - YII_se,
+       ymax = YII_mean_all + YII_se,
+       color = Prec,
+       linetype = Treatment
+     ),
+     width = 2.5,
+     size = 0.8,
+     position = position_dodge(width = 2) 
+   ) +
     
     ggeasy::easy_center_title() +
     ylim(0, 0.72)+
@@ -214,11 +251,28 @@ theme_recovery_surv <- theme_classic()+
     scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                         label = c("-3", "0", "15", "30"))+
     
-    labs(x = "", y = "")+ #y = "ΔF/Fm'"
+    labs(x = "", y = "")+
     facet_wrap(Species_short ~., strip.position ="bottom"))
 
 
 ### PAM - Galaxea ----
+
+Gfa_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Gfa"
+  )%>%
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "3") ~ "0",
+                         str_detect(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+            YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n()))
+
+
 (Gfa_PAM_recovery <- 
   Recovery_data %>%
   filter(Species_ID == "Gfa"
@@ -230,17 +284,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
   
    group_by(Day, Prec, Treatment) %>% 
-   dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+   dplyr::mutate(YII_mean_all = mean(YII_mean),
+                 YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
-   geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), linewidth = 1) +
-   geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
+   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+              alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Gfa_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Gfa_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -249,23 +312,27 @@ theme_recovery_surv <- theme_classic()+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
    
+    geom_errorbar(data = Gfa_PAM_recovery_mean,
+                  aes(
+                    ymin = YII_mean_all - YII_se,
+                    ymax = YII_mean_all + YII_se,
+                    color = Prec,
+                    linetype = Treatment),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2) 
+    ) +
+   
    ggeasy::easy_center_title() +
    ylim(0, 0.72)+
    
    theme_recovery+
 
-   # theme(
-   #   plot.margin=unit(c(-0.4,0.1,-0.4,0), "cm")
-   # )+
-   # 
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-3", "0", "15", "30"))+
    
-  labs(x = "", y = "ΔF/Fm'")+ #y = "ΔF/Fm'"
-   # labs(x = "", y = "")+
-   # theme(
-   #   axis.text.y=element_blank(),
-   # )+
+  labs(x = "", y = "ΔF/Fm'")+ 
+ 
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
 
@@ -274,6 +341,22 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### PAM - Montipora ----
+
+Mdi_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Mdi")%>%
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "3") ~ "0",
+                         str_detect(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+            YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n()))
+
+
+
 (Mdi_PAM_recovery <- 
     Recovery_data %>%
     filter(Species_ID == "Mdi")%>%
@@ -283,28 +366,46 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
     
     group_by(Day, Prec, Treatment) %>% 
-    dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+    dplyr::mutate(YII_mean_all = mean(YII_mean), 
+                  YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
     
     mutate (Days =  as.numeric(Days))%>%
     
     
     ggplot(mapping = aes(x = Days))+
     
-    geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-               alpha = 0.6, fill = NA, set.seed(1) ) +
+    geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
     
-    # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-    #               ) +
-    geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), linewidth = 1) +
-    geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
-    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
+    geom_line(data = Mdi_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Mdi_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+              
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
+
+   scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
     scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
     
    annotate("rect", xmin = -4.5, xmax = -1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
-   ylim(0, 0.72)+
+   
+    geom_errorbar(data = Mdi_PAM_recovery_mean,
+                  aes(
+                    ymin = YII_mean_all - YII_se,
+                    ymax = YII_mean_all + YII_se,
+                    color = Prec,
+                    linetype = Treatment
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2) 
+    ) +
    
    ggeasy::easy_center_title() +
    
@@ -313,11 +414,10 @@ theme_recovery_surv <- theme_classic()+
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-3", "0", "15", "30"))+
    
-   labs(x = "", y = "ΔF/Fm'")+ #y = "ΔF/Fm'"
+   labs(x = "", y = "ΔF/Fm'")+ 
    labs(x = "", y = "")+
    theme(
-     axis.text.y=element_blank(),
-     # legend.position= "bottom",
+     axis.text.y=element_blank()
    )+
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
@@ -325,6 +425,20 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### PAM - Pocillopora ----
+
+Pve_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Pve", Treatment == "Heat"& Day <= 1 | Treatment == "Control")%>%
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+            YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n()))
+
 (Pve_PAM_recovery <- 
    Recovery_data %>%
    filter(Species_ID == "Pve", Treatment == "Heat"& Day <= 1 | Treatment == "Control")%>%
@@ -334,20 +448,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Treatment) %>% 
-   dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+   dplyr::mutate(YII_mean_all = mean(YII_mean), 
+                 YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
+   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+              alpha = 0.4, fill = NA, set.seed(1) ) +
    
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), size = 1) +
-   geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
+    geom_line(data = Pve_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Pve_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -355,6 +475,18 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Pve_PAM_recovery_mean,
+                  aes(
+                    ymin = YII_mean_all - YII_se,
+                    ymax = YII_mean_all + YII_se,
+                    color = Prec,
+                    linetype = Treatment
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2) 
+    ) +
    
    ggeasy::easy_center_title() +
    ylim(0, 0.72)+
@@ -367,12 +499,27 @@ theme_recovery_surv <- theme_classic()+
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-1", "0", "15", "30"))+
    
-   labs(x = "", y = "")+ #y = "ΔF/Fm'"
+   labs(x = "", y = "")+ 
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
 
 
 ### PAM - Stylophora ----
+
+Spi_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Spi", Treatment == "Heat"& Day <= 15 | Treatment == "Control")%>%
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+            YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n()))
+
+
 (Spi_PAM_recovery <- 
    Recovery_data %>%
    filter(Species_ID == "Spi", Treatment == "Heat"& Day <= 15 | Treatment == "Control")%>%
@@ -382,20 +529,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Treatment) %>% 
-   dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+   dplyr::mutate(YII_mean_all = mean(YII_mean),   
+                 YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
+   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+              alpha = 0.4, fill = NA, set.seed(1) ) +
    
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), size = 1) +
-   geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
+    geom_line(data = Spi_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Spi_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -403,6 +556,18 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Spi_PAM_recovery_mean,
+                  aes(
+                    ymin = YII_mean_all - YII_se,
+                    ymax = YII_mean_all + YII_se,
+                    color = Prec,
+                    linetype = Treatment
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2) 
+    ) +
    
    ggeasy::easy_center_title() +
    
@@ -415,13 +580,31 @@ theme_recovery_surv <- theme_classic()+
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-1", "0", "15", "30"))+
    
-   labs(x = "", y = "")+ #y = "ΔF/Fm'"
+   labs(x = "", y = "")+ 
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
 
 
 
 ### PAM - Acropora ----
+
+Amu_PAM_recovery_mean <- 
+  Recovery_data %>%
+  filter(Species_ID == "Amu", Treatment == "Control"& Day <= 1 | Treatment == "Heat"& Day <= 1 )%>%
+  
+  
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Treatment, Days) %>% 
+  summarise(YII_mean_all = mean(YII_mean),
+            YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n()))
+
+
 (Amu_PAM_recovery <- 
    Recovery_data %>%
    filter(Species_ID == "Amu", Treatment == "Control"& Day <= 1 | Treatment == "Heat"& Day <= 1 )%>%
@@ -434,20 +617,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Treatment) %>% 
-   dplyr::mutate(YII_mean_all = mean(YII_mean)) %>%
+   dplyr::mutate(YII_mean_all = mean(YII_mean),    
+                 YII_se = sd(YII_mean, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
+   geom_point(aes(y = YII_mean, color = Prec, shape = Treatment), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+              alpha = 0.4, fill = NA, set.seed(1) ) +
    
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = YII_mean_all, color = Prec, linetype = Treatment), size = 1) +
-   geom_point(aes(y = YII_mean_all, color = Prec), size = 3)+
+    geom_line(data = Amu_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, linetype = Treatment), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Amu_PAM_recovery_mean, aes(y = YII_mean_all, color = Prec, shape = Treatment),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -455,6 +644,18 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Amu_PAM_recovery_mean,
+                  aes(
+                    ymin = YII_mean_all - YII_se,
+                    ymax = YII_mean_all + YII_se,
+                    color = Prec,
+                    linetype = Treatment
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2) 
+    ) +
    
    ggeasy::easy_center_title() +
    ylim(0, 0.72)+
@@ -466,7 +667,7 @@ theme_recovery_surv <- theme_classic()+
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-1", "0", "15", "30"), limits = c(-4.5, 20.55))+
    
-   labs(x = "", y = "")+ #y = "ΔF/Fm'"
+   labs(x = "", y = "")+ 
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
    
@@ -474,12 +675,28 @@ theme_recovery_surv <- theme_classic()+
 ## PLOTS - Tissue color (Clr) -----------------------------------------------------------------------
 
 
-
-
-
 ### Clr - Galaxea ----
+
+
+Gfa_Clr_recovery_mean <- 
+  Clr1 %>%
+  filter(ID == "Gfa")%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "3") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+                grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
+
 (Gfa_Clr_recovery <- 
-   Clr %>%
+   Clr1 %>%
    filter(ID == "Gfa")%>%
    
    mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
@@ -487,23 +704,42 @@ theme_recovery_surv <- theme_classic()+
                           str_ends(Day, "15") ~ "10",
                           str_starts(Day, "30") ~ "20"))%>%
    
-   group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
-   
+   group_by(Day, Prec, Trtm) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
+
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
+   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+              alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Gfa_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Gfa_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+
    
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
+    
+   geom_errorbar(data = Gfa_Clr_recovery_mean,
+     aes(
+       ymin = grays_sum_all - grays_se,
+       ymax = grays_sum_all + grays_se,
+       color = Prec,
+       linetype = Trtm
+     ),
+     width = 2.5,
+     size = 0.8,
+     position = position_dodge(width = 2)
+   ) +
    
    ylim(30, 205)+
    
@@ -513,19 +749,12 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#F75840")+
    
    theme_recovery_IMG+
-   # theme(
-   #   plot.margin=unit(c(-0.4,0.1,0,0), "cm")
-   # )+
-
+  
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-5", "0", "15", "30"))+
    
    labs(x = "", y = "Tissue color intensity")+
-   # labs(x = "", y = "")+
-   # labs(x = "", y = "")+
-   # theme(
-   #   axis.text.y=element_blank(),
-   # )+
+   
    facet_wrap(Species_short ~., strip.position ="bottom"))
 
 
@@ -535,8 +764,27 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### Clr - Montipora ----
+
+Mdi_Clr_recovery_mean <- 
+  Clr1 %>%
+  filter(ID == "Mdi")%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "3") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+            grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
+
+
 (Mdi_Clr_recovery <- 
-   Clr %>%
+   Clr1 %>%
    filter(ID == "Mdi")%>%
    
    mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
@@ -545,20 +793,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
-   
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
+    geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Mdi_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Mdi_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+              
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -566,6 +820,19 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Mdi_Clr_recovery_mean,
+                  aes(
+                    ymin = grays_sum_all - grays_se,
+                    ymax = grays_sum_all + grays_se,
+                    color = Prec,
+                    linetype = Trtm
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2)
+    ) +
+   
    
    ylim(30, 205)+
    theme_recovery_IMG+
@@ -588,8 +855,27 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### Clr - Pocillopora ----
+
+Pve_Clr_recovery_mean <- 
+  Clr1 %>%
+  filter(ID == "Pve")%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  filter(ID == "Pve" & Trtm == "Heat"& Days <= 10 | ID == "Pve" & Trtm == "Control" & Days <= 20) %>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+            grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
+
 (Pve_Clr_recovery <- 
-   Clr %>%
+   Clr1 %>%
   filter(ID == "Pve")%>%
   
   mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
@@ -604,7 +890,8 @@ theme_recovery_surv <- theme_classic()+
    
    
    group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Day =  as.numeric(Day))%>%
    mutate (Days =  as.numeric(Days))%>%
@@ -613,13 +900,18 @@ theme_recovery_surv <- theme_classic()+
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
-   
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
+    geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Pve_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Pve_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -627,6 +919,19 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Pve_Clr_recovery_mean,
+                  aes(
+                    ymin = grays_sum_all - grays_se,
+                    ymax = grays_sum_all + grays_se,
+                    color = Prec,
+                    linetype = Trtm
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2)
+    ) +
+   
    
    ylim(30, 205)+
    theme_recovery_IMG+
@@ -647,8 +952,28 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### Clr - Stylopora ----
+
+
+Spi_Clr_recovery_mean <- 
+  Clr1 %>%
+  filter(ID == "Spi")%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  filter(ID == "Spi" & Trtm == "Heat"& Days <= 10 | ID == "Spi" & Trtm == "Control" & Days <= 20) %>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+            grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
+
 (Spi_Clr_recovery <- 
-   Clr %>%
+   Clr1 %>%
    filter(ID == "Spi")%>%
    
    mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
@@ -657,20 +982,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    filter(ID == "Spi" & Trtm == "Heat"& Days <= 10 | ID == "Spi" & Trtm == "Control" & Days <= 20) %>%
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
-   
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
+    geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Spi_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Spi_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -678,6 +1009,19 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Spi_Clr_recovery_mean,
+                  aes(
+                    ymin = grays_sum_all - grays_se,
+                    ymax = grays_sum_all + grays_se,
+                    color = Prec,
+                    linetype = Trtm
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2)
+    ) +
+   
    
    ylim(30, 206)+
    theme_recovery_IMG+
@@ -696,8 +1040,25 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### Clr - Porites ----
+
+Pru_Clr_recovery_mean <- 
+  Clr1%>%
+  filter(ID == "Pru")%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "2") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+            grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
 (Pru_Clr_recovery <- 
-   Clr%>%
+   Clr1%>%
    # Clr2_fixed %>%
    filter(ID == "Pru")%>%
    
@@ -707,20 +1068,26 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
-   
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
+    geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Pru_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Pru_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
    
@@ -728,6 +1095,19 @@ theme_recovery_surv <- theme_classic()+
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+   
+    geom_errorbar(data = Pru_Clr_recovery_mean,
+                  aes(
+                    ymin = grays_sum_all - grays_se,
+                    ymax = grays_sum_all + grays_se,
+                    color = Prec,
+                    linetype = Trtm
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2)
+    ) +
+   
 
    ylim(30, 205)+
    theme_recovery_IMG+
@@ -747,8 +1127,26 @@ theme_recovery_surv <- theme_classic()+
 
 
 ### Clr - Acropora ----
+
+Amu_Clr_recovery_mean <- 
+  Clr1 %>%
+  filter(ID == "Amu"& Day<=1)%>%
+  
+  mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
+                         str_ends(Day, "1") ~ "0",
+                         str_ends(Day, "15") ~ "10",
+                         str_starts(Day, "30") ~ "20"))%>%
+  
+  mutate (Days =  as.numeric(Days))%>%
+  
+  group_by(Day, Prec, Trtm, Days) %>% 
+  summarise(grays_sum_all = mean(gray_sum),
+            grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n()))
+
+
+
 (Amu_Clr_recovery <- 
-   Clr %>%
+   Clr1 %>%
    filter(ID == "Amu"& Day<=1)%>%
    
    mutate(Days =case_when(str_starts(Day, "0") ~ "-3",
@@ -757,7 +1155,8 @@ theme_recovery_surv <- theme_classic()+
                           str_starts(Day, "30") ~ "20"))%>%
    
    group_by(Day, Prec, Trtm) %>% 
-   dplyr::mutate(grays_sum_all = mean(gray_sum)) %>%
+   dplyr::mutate(grays_sum_all = mean(gray_sum),
+                 grays_se = sd(gray_sum, na.rm = TRUE) / sqrt(n())) %>%
    
    mutate (Days =  as.numeric(Days))%>%
    
@@ -766,20 +1165,44 @@ theme_recovery_surv <- theme_classic()+
    
    ggplot(mapping = aes(x = Days))+
    
-   geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), position = position_jitterdodge(dodge.width = 1, jitter.width = 0.15),
-              alpha = 0.6, fill = NA, set.seed(1) ) +
+    geom_point(aes(y = gray_sum, color = Prec, shape = Trtm), size = 2.5, position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15),
+               alpha = 0.4, fill = NA, set.seed(1) ) +
+    
+    geom_line(data = Amu_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, linetype = Trtm), 
+              linewidth = 1,
+              position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15)) +
+    
+    geom_point(data = Amu_Clr_recovery_mean, aes(y = grays_sum_all, color = Prec, shape = Trtm),
+               size = 3.5, 
+               
+               position = position_jitterdodge(dodge.width = 2, jitter.width = 0.15))+
+    
    
-   # geom_errorbar(test_pru, mapping = aes(ymin=YII_mean-ci, ymax=YII_mean+ci,color = Prec ), width= 0.8, stat = "identity"
-   #               ) +
-   geom_line(aes(y = grays_sum_all, color = Prec, linetype = Trtm), size = 1) +
-   geom_point(aes(y = grays_sum_all, color = Prec), size = 3)+
    scale_linetype_manual(breaks=c("Control","Heat"), values=c(2,1))+
    scale_color_manual(values=c("#4682B4", "#B4B446", "#D4711C"))+
+   
+   
+ 
+   
    
    annotate("rect", xmin = -4.5, xmax = -1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#1AD45E")+
    annotate("rect", xmin = -1.5, xmax = 1.5, ymin = -Inf, ymax = Inf,
             alpha = .1,fill = "#F75840")+
+ 
+   
+    geom_errorbar(data = Amu_Clr_recovery_mean,
+                  aes(
+                    ymin = grays_sum_all - grays_se,
+                    ymax = grays_sum_all + grays_se,
+                    color = Prec,
+                    linetype = Trtm
+                  ),
+                  width = 2.5,
+                  size = 0.8,
+                  position = position_dodge(width = 2)
+    ) +
+   
    
    ylim(27, 205)+
    theme_recovery_IMG+
@@ -789,7 +1212,6 @@ theme_recovery_surv <- theme_classic()+
    scale_x_continuous (breaks = c(-3, 0 , 10, 20),
                        label = c("-1", "0", "15", "30"), limits = c(-4.5, 20.55))+
    
-   # labs(x = "Days after heat stress", y = "Tissue color intensity")+
    labs(x = "", y = "")+
    
    facet_wrap(Species_short ~., strip.position ="bottom"))
@@ -874,7 +1296,7 @@ Pru.cfit_pairwise
      
      ggplot(mapping = aes(x = Days, y = surv))+
      
-     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
      
      geom_step(aes(y = surv, color = Prec), linewidth = 1)+
      
@@ -935,12 +1357,12 @@ Amu.cfit_pairwise
                        legend.labs=c("Ambient", "ST", "VT"), legend.title="Preconditioning", 
                        ggtheme = theme_classic2(base_size=20),
             xlim = c(0, 30), break.x.by = 10,
-            #surv.median.line = "hv",
+            
             
                        palette = c("#4682B4", "#B4B446", "#D4711C"),
                        
                        
-                       #title = expression(paste("Kaplan-Meier Curve for coral Survival rate, ", italic("Porites rus"))), 
+                    
                        risk.table.height=.15))
 
 
@@ -974,7 +1396,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
     
     ggplot(mapping = aes(x = Days, y = surv))+
     
-    geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+    geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
     
     geom_step(aes(y = surv, color = Prec), size = 1)+
    
@@ -1068,7 +1490,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
      
      ggplot(mapping = aes(x = Days, y = surv))+
      
-     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
      
      geom_step(aes(y = surv, color = Prec), size = 1)+
      
@@ -1163,7 +1585,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
      
      ggplot(mapping = aes(x = Days, y = surv))+
      
-     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
      
      geom_step(aes(y = surv, color = Prec), size = 1)+
      
@@ -1263,7 +1685,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
      
      ggplot(mapping = aes(x = Days, y = surv))+
      
-     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
      
      geom_step(aes(y = surv, color = Prec), size = 1)+
      
@@ -1354,7 +1776,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
      
      ggplot(mapping = aes(x = Days, y = surv))+
      
-     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3)+ 
+     geom_point(aes(y =surv, color = Prec), alpha = 1, fill = NA , set.seed(1),size = 3.5, shape = 17)+ 
      
      geom_step(aes(y = surv, color = Prec), size = 1)+
      
@@ -1397,9 +1819,10 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   
 # Plot Assembly  --------------------------------------------
   
-  # In this section all recovery plots (Survival, Photosynthetic efficiency, and tissue color) are combined first by species and then all together
+  # In this section all recovery plots (Survival, Photosynthetic efficiency, and tissue color) 
+  # are combined first by species and then all together
 
-  # Pru
+  # Porites rus
 
   
   (Pru <- ggarrange(Pru_surv,Pru_PAM_recovery,Pru_Clr_recovery, 
@@ -1410,7 +1833,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
 
   #ggsave(here ("Output/Recovery", "Pru_patch_new_tissue.png"), dpi = 400, units = "cm", width = 15, height = 25)
 
-  #Gfa
+  #Galaxea fascicularis
   
     (Gfa <- ggarrange(Gfa_surv,Gfa_PAM_recovery,Gfa_Clr_recovery, 
                   align = "v", 
@@ -1421,7 +1844,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   #ggsave(here ("Output/Recovery", "Gfa_patch_new_tissue.png"), dpi = 400, units = "cm", width = 15, height = 25)
   
   
-  #Pve
+  #Pocillopora verrucosa
   
   (Pve <- ggarrange(Pve_surv,Pve_PAM_recovery,Pve_Clr_recovery, 
                   align = "v",  
@@ -1432,7 +1855,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   #ggsave(here ("Output/Recovery", "Pve_patch_new_tissue.png"), dpi = 400, units = "cm", width = 15, height = 25)
   
   
-  #Amu
+  #Acropora muricata
 
   (Amu <- ggarrange(Amu_surv,Amu_PAM_recovery,Amu_Clr_recovery, 
                   align = "v", 
@@ -1442,7 +1865,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   
   #ggsave(here ("Output/Recovery", "Amu_patch_new_tissue.png"), dpi = 400, units = "cm", width = 15, height = 25)
   
-  #Spi
+  #Stylophora pistillata
   
   (Spi <- ggarrange(Spi_surv,Spi_PAM_recovery,Spi_Clr_recovery, 
                   align = "v", 
@@ -1451,7 +1874,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   
   # ggsave(here ("Output/Recovery", "Spi_patch_new_tissue.png"), dpi = 400, units = "cm", width = 15, height = 25)
   
-  #Mdi
+  #Montipora digitata
 
   (Mdi <- ggarrange(Mdi_surv,Mdi_PAM_recovery,Mdi_Clr_recovery, 
                   align = "v",
@@ -1466,7 +1889,7 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
 
  ## All species ----
   
-  ggarrange(Gfa, Pru, Amu, Mdi, Pve, Spi, 
+  ggarrange(Gfa, Pru, Amu, Mdi,  Pve,   Spi, 
             align = "h",  
             widths= c(1.33, 1,1,1,1,1),
             legend = "bottom",
@@ -1475,6 +1898,8 @@ Surv_Amu_df[nrow(Surv_Amu_df) + 1,] = c(-3,1.000, "VT")
   
  
   
-  #ggsave(here ("Output", "Recovery_phase.png"), dpi = 400, units = "cm", width = 45, height = 25)
+  ggsave(here ("Output", "Recovery_phase_smallpoints.png"), dpi = 400, units = "cm", width = 45, height = 25)
   
    
+  
+

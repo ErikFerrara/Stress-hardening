@@ -41,11 +41,12 @@ library(lmtest)
 # Load the data of coral tissue color, used as proxy for bleaching. This df contain the tissue color values from the "post-preconditioning",
 # "post-heat", "day-15", and "day-30" time points. However, Only DATA ANALYSIS OF "POST-PRECONDITIONING" AND "POST-HEAT" is shown here.
 
-Clr  <- read_csv2(here("Data", "Ferrara_tissue_color_master_df.csv"))
 
-# To perform the tissue color analyses, we calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
-Clr <- Clr %>%
-  mutate(gray_sum = (255 - gray_sum))
+#Load the tissue color data (effective quantum yield and surival data)
+
+Clr1  <- read_csv2(here("Data", "Ferrara_etal_bleaching.csv"))
+
+# To perform the tissue color analyses, we already calculated the complementary values (255 - x) to show the 0 as white and 255 as bleak.
 
 
 #  1 Effect of Prec. on baseline physiology (tissue color) ---- 
@@ -57,13 +58,13 @@ Clr <- Clr %>%
 
 #subset the master df to include only the "post-preconditioning" tissue color values.
 
-Clr_Preconditioning <- Clr %>%
+Clr_Preconditioning <- Clr1 %>%
   dplyr::filter(Day == 0) %>% 
   mutate(across(c(Species, ID, Prec, Trtm, Tank_n, Colony, Day, Frg, Region), as.factor),
          across(c(gray_sum), as.numeric))%>%
   
-  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Porites rus", "Acropora muricata", "Montipora digitata", 
-                                               "Pocillopora verrucosa", "Stylophora pistillata"
+  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Acropora muricata","Porites rus",   
+                                               "Pocillopora verrucosa", "Montipora digitata","Stylophora pistillata"
   )))%>%
   mutate_if(is.numeric, round, 3) %>%
   ungroup()
@@ -671,7 +672,7 @@ ggsave(here ("Plot", "CLR_Post-Preconditioning.png"), dpi = 400, units = "cm", w
 ## DF subset (Paired data calculation) ----
 
 # Subset the master df to include only the "post-heat" and "post-preconditioning" values to calculated the paired difference (delta).
-Clr_heat_paired <- Clr %>%
+Clr_heat_paired <- Clr1 %>%
 
 dplyr::filter(
   ID == "Pru"& Day == 0| 
@@ -788,16 +789,16 @@ Heat_Clr_Wilcox_control <- Clr_heat_paired %>%
 
 
 Clr_heat_paired%>%
-  mutate (Species_short =  factor(Species_short, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", "P. verrucosa", "S. pistillata"
+  mutate (Species_short =  factor(Species_short, level = c("G. fascicularis",  "P. rus", "A. muricata", "M. digitata", "P. verrucosa",   "S. pistillata"
   )))%>%
   dplyr::filter(Trtm=="Heat")%>%
   ggplot(mapping = aes(x = Prec_Day, y = gray_sum))+
   
   geom_quasirandom (aes( fill = Prec_Day, shape = Heat_stress ), 
                     col = "black",dodge.width= .9, size = 2 )+
-  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress), alpha = 0.7,lwd = 0.7)+ 
+  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress),lwd = 0.7)+ 
   
-  scale_fill_manual(values=c("#4682B4", "#63B8FF",  "#B4B446", "#EEEE00",  "#D4711C", "#FF7F24" ))+
+  scale_fill_manual(values=c("#4682B4B3", "#63B8FF40",  "#B4B446B3", "#EEEE0040",  "#D4711CB3", "#FF7F2440" ))+
   
   scale_shape_manual(values=c(21,24))+
   stat_pvalue_manual(Heat_Clr_Wilcox,
@@ -831,7 +832,7 @@ Clr_heat_paired%>%
   
   facet_wrap(.~ Species_short, ncol = 6, strip.position ="bottom", )
 
-ggsave(here ("Plot", "Clr_post-heat_paired-heat.png"), dpi = 400, units = "cm", width = 53.5, height = 14)
+ggsave(here ("Plot", "Output/Clr_post-heat_paired-heat.png"), dpi = 400, units = "cm", width = 53.4, height = 11.7)
 
 
 
@@ -847,9 +848,9 @@ Clr_heat_paired%>%
   
   geom_quasirandom (aes( fill = Prec_Day, shape = Heat_stress ), 
                     col = "black",dodge.width= .9, size = 2 )+
-  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress), alpha = 0.7,lwd = 0.7)+ 
+  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress),lwd = 0.7)+ 
   
-  scale_fill_manual(values=c("#4682B4", "#63B8FF",  "#B4B446", "#EEEE00",  "#D4711C", "#FF7F24" ))+
+  scale_fill_manual(values=c("#4682B4B3", "#63B8FF40",  "#B4B446B3", "#EEEE0040",  "#D4711CB3", "#FF7F2440" ))+
   
   scale_shape_manual(values=c(21,24))+
   stat_pvalue_manual(Heat_Clr_Wilcox_control,

@@ -15,10 +15,41 @@
 # Libraries ----
 
 library(here)
+library(ggpubr)
+library(gridExtra)
+library(ggtext)
 library(dplyr)   
 library(tidyverse)
 library(ggnewscale)
 library(RColorBrewer)
+
+library(here)
+library(lubridate)
+library(scales)
+library(ggpubr)
+
+library(rstatix)
+library(patchwork)
+library(multcomp)
+
+library(easystats)
+library(gridExtra)
+library(lme4)
+
+library(ggbeeswarm)
+
+library(ggtext)
+
+library(dplyr)   
+library(tidyverse)
+library(emmeans)
+library(ggnewscale)
+library(survival)
+library(survminer)
+library(car)
+
+
+
 
 
 # 1 (PAM) Post-heat Photosynthetic efficiency effect sizes -----------------------------------------------------------------------------------------------
@@ -273,7 +304,7 @@ Heatmap.df %>%
 
   scale_fill_gradientn(colors = colors1,
                        values = values1,
-                       guide = guide_colorbar(order = 1,title.position = "top",barwidth = 15),
+                       guide = guide_colorbar(order = 1,title.position = "top",barwidth = 20),
                        na.value = "#F6FFE3FE", # To ensure the rest of the values remain readable, the limit was set to -10. The effect size for S. pistillata from the Ambient regime, which was -17, was colored using a light shade color that was not white.
                        limits = c(-10,0)
   ) +
@@ -284,7 +315,7 @@ Heatmap.df %>%
   geom_tile(data = ~ filter(.x,Heatmap.df$Value == "Clr") %>% rename(`Changes in tissue color` = eff), mapping = aes(fill = `Changes in tissue color`), color = "lightgray") +
   scale_fill_gradientn(colors = colors,
                        values = values,
-                       guide = guide_colorbar(order = 3,title.position = "top",barwidth = 15),
+                       guide = guide_colorbar(order = 3,title.position = "top",barwidth = 20),
                        limits = c(-10,0),oob = scales::squish) +
 
   # Pam recovery
@@ -313,7 +344,7 @@ Heatmap.df %>%
   new_scale("fill") +
   
   geom_tile(data = ~ filter(.x,Heatmap.df$Value == "Survive rate") %>% rename(`Survive rate (%)` = eff)%>% mutate(`Survive rate (%)`=(100*`Survive rate (%)`)), mapping = aes(fill = `Survive rate (%)`), color = "lightgray") +
-  scale_fill_gradientn(colors = rev(c("#0D00FF",  "white")), guide = guide_colorbar(order = 5,title.position = "top",barwidth = 15)) +
+  scale_fill_gradientn(colors = rev(c("#0D00FF",  "white")), guide = guide_colorbar(order = 5,title.position = "top",barwidth = 20)) +
   
   scale_y_discrete(label = c("Clr_Recovery" = "Tissue color<br>(recovery)",
                              "PAM_Recovery" = "ΔF/Fm'<br>(recovery)",
@@ -338,10 +369,9 @@ Heatmap.df %>%
     axis.text.y = element_markdown(angle = 45, vjust = 0),
     legend.justification = c(0.5, 0.5),
     legend.direction = "horizontal",
-    legend.title = element_text(size = 16, angle = 0, hjust = 0.5,), 
-    legend.text = element_text(size = 13),
-    legend.spacing.x = unit(1, "cm"),
-    strip.background = element_blank()
+    legend.title = element_text(size = 22, angle = 0, hjust = 0.5,), 
+    legend.text = element_text(size = 18),
+    legend.spacing.x = unit(1, "cm")
   )+
 
   labs(x="",y= "")+
@@ -350,7 +380,9 @@ Heatmap.df %>%
   facet_wrap(~ Species, strip.position ="bottom", ncol = 6)
 
 
+###ggsave ----
 
+ggsave(here ("Output", "Heatmap_hedges_manuscript.png"), dpi = 400, units = "cm", width = 53, height = 20)
 
 
 

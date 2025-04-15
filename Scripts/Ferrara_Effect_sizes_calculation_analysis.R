@@ -23,11 +23,13 @@ options(scipen = 999)# avoid scientific annotations
 
 ## Load data ----
 
-# Load effective quantum yield data
-H_rcv <- read_csv(here("Data", "Ferrara_PAM_master_df.csv"))
+#Load the photosynthetic efficiency data (effective quantum yield and surival data)
 
-# Load tissue color data
-Clr  <- read_csv(here("Data", "Ferrara_tissue_color_master_df.csv"))
+H_rcv <- read_csv2(here("Data", "Ferrara_etal_PAM.csv"))
+
+#Load the tissue color data (effective quantum yield and surival data)
+
+Clr1  <- read_csv2(here("Data", "Ferrara_etal_bleaching.csv"))
 
 
 ## Data preparation ----
@@ -39,8 +41,8 @@ H_rcv_mean <-H_rcv %>%
   mutate(across(c(Species_ID, Prec, Tank_n, Colony, Frg_n, Region, Treatment), as.factor),
          across(c(YII, F, Fm), as.numeric))%>%
   
-  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Porites rus", "Acropora muricata", "Montipora digitata", 
-                                               "Pocillopora verrucosa", "Stylophora pistillata"
+  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Acropora muricata", "Porites rus",   
+                                               "Pocillopora verrucosa", "Montipora digitata", "Stylophora pistillata"
   )))%>%
   # mutate(Species= ifelse(Species_ID == "Mdi", "Montipora digitata", Species))%>%
   
@@ -105,10 +107,10 @@ Prec.effect.H_rcv_mean<- H_rcv_mean%>%
 
 groups<- list(
   c("Gfa_AT","Gfa_ST", "Gfa_VT"),
-  c("Pru_AT","Pru_ST", "Pru_VT"),
   c("Amu_AT","Amu_ST", "Amu_VT"),
-  c("Mdi_AT","Mdi_ST", "Mdi_VT"),
+  c("Pru_AT","Pru_ST", "Pru_VT"),
   c("Pve_AT","Pve_ST", "Pve_VT"),
+  c("Mdi_AT","Mdi_ST", "Mdi_VT"),
   c("Spi_AT","Spi_ST", "Spi_VT")
 )
 
@@ -132,7 +134,6 @@ dabest_plot(Effect.Prec_Pam,
             raw_marker_spread=0.5,
             swarm_label = "", contrast_label = "Hedges g")
 
-
 # Save the plot
 ggsave(here ("Output", "Baseline_Pam.png"), dpi = 400, units = "cm", width = 45, height = 20)
 
@@ -155,7 +156,7 @@ write_excel_csv(Prec_PAM_eff_g, here("Output","Statistics/Prec_PAM_eff_g.csv"))
 
 ## Grouping ----
 
-Prec.effect.Clr<- Clr%>%
+Prec.effect.Clr<- Clr1%>%
  
   # to ran the analysis with the dabestR package is necessary to create a new variable to group samples (the function doesn't have a grouping option)
   mutate(Day_Trtm_Prec = 
@@ -199,10 +200,10 @@ Prec.effect.Clr<- Clr%>%
 
 groups<- list(
   c("Gfa_AT","Gfa_ST", "Gfa_VT"),
-  c("Pru_AT","Pru_ST", "Pru_VT"),
   c("Amu_AT","Amu_ST", "Amu_VT"),
-  c("Mdi_AT","Mdi_ST", "Mdi_VT"),
+  c("Pru_AT","Pru_ST", "Pru_VT"),
   c("Pve_AT","Pve_ST", "Pve_VT"),
+  c("Mdi_AT","Mdi_ST", "Mdi_VT"),
   c("Spi_AT","Spi_ST", "Spi_VT")
 )
 
@@ -322,14 +323,20 @@ Heat.groups <- list(
   c("Gfa_ST_C","Gfa_ST_H"),
   c("Gfa_VT_C","Gfa_VT_H")
   ,
+  
+  c("Amu_AT_C","Amu_AT_H"),
+  c("Amu_ST_C","Amu_ST_H"),
+  c("Amu_VT_C","Amu_VT_H")
+  ,
+  
   c("Pru_AT_C","Pru_AT_H"),
   c("Pru_ST_C","Pru_ST_H"),
   c("Pru_VT_C","Pru_VT_H")
   ,
   
-  c("Amu_AT_C","Amu_AT_H"),
-  c("Amu_ST_C","Amu_ST_H"),
-  c("Amu_VT_C","Amu_VT_H")
+  c("Pve_AT_C","Pve_AT_H"),
+  c("Pve_ST_C","Pve_ST_H"),
+  c("Pve_VT_C","Pve_VT_H")
   ,
   
   c("Mdi_AT_C","Mdi_AT_H"),
@@ -337,10 +344,6 @@ Heat.groups <- list(
   c("Mdi_VT_C","Mdi_VT_H")
   ,
   
-  c("Pve_AT_C","Pve_AT_H"),
-  c("Pve_ST_C","Pve_ST_H"),
-  c("Pve_VT_C","Pve_VT_H")
-  ,
   c("Spi_AT_C","Spi_AT_H"),
   c("Spi_ST_C","Spi_ST_H"),
   c("Spi_VT_C","Spi_VT_H")
@@ -627,9 +630,9 @@ Recovery_Pam_g<- Effect.recovery_Pam[["boot_result"]]
 
 write_excel_csv(Recovery_Pam_g, here("Output","Statistics/Recovery_Pam_g.csv"))
 
-## Results extraction Table S6----
+## Results extraction Table S7----
 
-# The p value showed in table S6 are obtained from the following df
+# The p value showed in table S7 are obtained from the following df
 
 Recovery_Pam_pvalues_g <- Effect.recovery_Pam[["permtest_pvals"]]
 
@@ -747,10 +750,12 @@ Recovery_Clr_g<- Effect.recovery_Clr[["boot_result"]]
 write_excel_csv(Recovery_Clr_g, here("Output","Statistics/Recovery_Clr_g.csv"))
 
 
-## Results extraction Table S6----
+## Results extraction Table S7----
 
-# The p value showed in table S6 are obtained from the following df
+# The p value showed in table S7 are obtained from the following df
 
 Recovery_Clr_pvalues_g <- Effect.recovery_Clr[["permtest_pvals"]]
+
+
 
 

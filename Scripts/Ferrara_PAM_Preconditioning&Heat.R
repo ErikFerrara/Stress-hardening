@@ -34,6 +34,7 @@ library(emmeans)
 library(car)
 library(lmtest)
 
+
 # Load data ----
 
 # Load the photosynthetic efficiency data (effective quantum yield). This df contain the effective quantum yield values from the "post-preconditioning",
@@ -42,8 +43,9 @@ library(lmtest)
 # of coral fragments health status. Before any analysis, the mean of these three measurements was calculated. 
 
 
-H_rcv <- read_csv(here("Data", "Ferrara_PAM_master_df.csv"))
+#Load the photosynthetic efficiency data (effective quantum yield and surival data)
 
+H_rcv <- read_csv2(here("Data", "Ferrara_etal_PAM.csv"))
 
 
 #                            1 Effect of Prec. on baseline physiology -----
@@ -197,7 +199,7 @@ bestN <- bestNormalize(Pru.PAM_Preconditioning$YII_mean, loo = T, warn = T, allo
                        allow_lambert_s = T, allow_lambert_h = T, out_of_sample = T)
 bestN # visualize the best trasformation methods
 
-norm_res <-boxcox(Pru.PAM_Preconditioning$YII_mean)
+norm_res <-bestNormalize::boxcox(Pru.PAM_Preconditioning$YII_mean)
 
 norm_dat <- as_tibble(norm_res$x.t) %>%
   rename(YII_norm_bcx = value)
@@ -627,8 +629,8 @@ Prec_significance <- bind_rows(Spi.prec.result1, Amu.prec.result1, Pru.prec.resu
 #run a test to that include all species together, to obtain the coordinates where to add the annotations
 Pwc_mean <- PAM_Preconditioning %>%
   mutate(across(c(Species_ID, Prec, Treatment, Tank_n, Colony, Day, Frg_n, Region, Treatment), as.factor))%>%
-  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Porites rus", "Acropora muricata", "Montipora digitata", 
-                                               "Pocillopora verrucosa", "Stylophora pistillata"
+  mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Acropora muricata", "Porites rus", "Pocillopora verrucosa",
+                                               "Montipora digitata", "Stylophora pistillata"
   )))%>%
   
   ungroup() %>%
@@ -666,8 +668,8 @@ Prec_significance <- left_join(Pwc1, Prec_significance, by = c("Species", "group
 # This plot is the one showed in Fig.2 panel A of the manuscript
 
   PAM_Preconditioning %>%
-    mutate (Species =  factor(Species, level = c("Galaxea fascicularis",  "Porites rus", "Acropora muricata",
-                                                 "Montipora digitata", "Pocillopora verrucosa",  "Stylophora pistillata"
+    mutate (Species =  factor(Species, level = c("Galaxea fascicularis", "Acropora muricata",  "Porites rus", 
+                                                 "Pocillopora verrucosa",  "Montipora digitata",   "Stylophora pistillata"
     )))%>%
   ggplot(mapping = aes(x = Species, y = YII_mean, )) +
  
@@ -850,8 +852,8 @@ Heat_PAM_kruskal_control <- Pam_heat_paired %>%
 
 
 Heat_PAM_Wilcox <- Pam_heat_paired %>%
-  mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
-                                               "P. verrucosa", "S. pistillata"
+  mutate (Species =  factor(Species, level = c("G. fascicularis", "A. muricata", "P. rus",  
+                                               "P. verrucosa",  "M. digitata", "S. pistillata"
   )))%>%
   filter(Treatment=="Heat")%>%
   mutate(Prec_Day = factor(Prec:Heat_stress))%>%
@@ -865,17 +867,17 @@ Heat_PAM_Wilcox <- Pam_heat_paired %>%
   rstatix::add_xy_position(x = "Prec_Day", dodge = 0.8)
 
 #save the results
-write_csv2(Heat_PAM_Wilcox,here("Statistics","Wilcox_Heat_PAM.result.csv"))
+write_csv2(Heat_PAM_Wilcox,here("Output/Statistics","Wilcox_Heat_PAM.result.csv"))
 
-
+here()
 
 
 # post-hoc test - Control 
 
 
 Heat_PAM_Wilcox_control <- Pam_heat_paired %>%
-  mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
-                                               "P. verrucosa", "S. pistillata"
+  mutate (Species =  factor(Species, level = c("G. fascicularis", "A. muricata", "P. rus",  
+                                               "P. verrucosa",  "M. digitata", "S. pistillata"
   )))%>%
   filter(Treatment=="Control")%>%
   mutate(Prec_Day = factor(Prec:Heat_stress))%>%
@@ -908,8 +910,8 @@ Heat_PAM_Wilcox_control <- Pam_heat_paired %>%
 
 Pam_heat_paired%>%
   mutate(Prec_Day = factor(Prec:Heat_stress))%>%
-  mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
-                                               "P. verrucosa", "S. pistillata"
+  mutate (Species =  factor(Species, level = c("G. fascicularis",  "P. rus",  "A. muricata",
+                                               "M. digitata", "P. verrucosa",  "S. pistillata"
   )))%>%
   
   dplyr::filter(Treatment=="Heat")%>%
@@ -917,12 +919,12 @@ Pam_heat_paired%>%
   
   geom_quasirandom (aes( fill = Prec_Day, shape = Heat_stress ), 
                     col = "black",dodge.width= .9, size = 2 )+
-  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress), alpha = 0.7,lwd = 0.7)+ 
+  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress),lwd = 0.7)+ 
 
-  scale_fill_manual(values=c("#4682B4", "#63B8FF",  "#B4B446", "#EEEE00",  "#D4711C", "#FF7F24" ))+
+  scale_fill_manual(values=c("#4682B4B3", "#63B8FF40",  "#B4B446B3", "#EEEE0040",  "#D4711CB3", "#FF7F2440" ))+
   
   scale_shape_manual(values=c(21,24))+
-  stat_pvalue_manual(Heat_PAM_Wilcox_control,
+  stat_pvalue_manual(Heat_PAM_Wilcox,
                      label = "p.adj.signif", label.size = 14, tip.length = 0.01, hide.ns = T
   ) +
   
@@ -953,10 +955,7 @@ Pam_heat_paired%>%
   
   facet_wrap(.~ Species, ncol = 6, strip.position ="bottom")
 
-ggsave(here ("Plot", "PAM_post-heat_paired-heat.png"), dpi = 400, units = "cm", width = 53.5, height = 14)
-
-
-
+ggsave(here ("Plot", "Output/PAM_post-heat_paired-heat.png"), dpi = 400, units = "cm", width = 53.4, height = 11.7)
 
 
 
@@ -969,8 +968,8 @@ ggsave(here ("Plot", "PAM_post-heat_paired-heat.png"), dpi = 400, units = "cm", 
 
 Pam_heat_paired%>%
   mutate(Prec_Day = factor(Prec:Heat_stress))%>%
-  mutate (Species =  factor(Species, level = c("G. fascicularis", "P. rus", "A. muricata", "M. digitata", 
-                                               "P. verrucosa", "S. pistillata"
+  mutate (Species =  factor(Species, level = c("G. fascicularis", "A. muricata", "P. rus",  
+                                               "P. verrucosa",  "M. digitata", "S. pistillata"
   )))%>%
   
   dplyr::filter(Treatment=="Control")%>%
@@ -978,9 +977,9 @@ Pam_heat_paired%>%
   
   geom_quasirandom (aes( fill = Prec_Day, shape = Heat_stress ), 
                     col = "black",dodge.width= .9, size = 2 )+
-  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress), alpha = 0.7,lwd = 0.7)+ 
+  geom_boxplot(aes(fill = Prec_Day, shape = Heat_stress),lwd = 0.7)+ 
   
-  scale_fill_manual(values=c("#4682B4", "#63B8FF",  "#B4B446", "#EEEE00",  "#D4711C", "#FF7F24" ))+
+  scale_fill_manual(values=c("#4682B4B3", "#63B8FF40",  "#B4B446B3", "#EEEE0040",  "#D4711CB3", "#FF7F2440" ))+
   
   scale_shape_manual(values=c(21,24))+
   stat_pvalue_manual(Heat_PAM_Wilcox_control,
@@ -1568,4 +1567,4 @@ report(Spi.lmer.heat)
 
 
 
-   
+
